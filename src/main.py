@@ -54,15 +54,26 @@ def login(request: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(
     access_token = jwttoken.create_access_token(data={"sub": user.email})
     return {"access_token": access_token, "token_type": "bearer"}
 
+# Upload File
+# @app.post('/note', status_code=status.HTTP_201_CREATED, tags=['Notes'])
+# def create_note(title:str, note:str, file: UploadFile = File(...),db: Session = Depends(get_db), get_current_user: schemas.User = Depends(oauth2.get_current_user)):
+#     user = db.query(models.User).filter(models.User.email == get_current_user).first()
+#     with open("media/"+file.filename, "wb") as image:
+#         shutil.copyfileobj(file.file, image)
+
+#     note_url = str("media/"+file.filename)
+
+#     new_note = models.Note(title=title, note=note, note_file=note_url, user_id=user.id)
+#     db.add(new_note)
+#     db.commit()
+#     db.refresh(new_note)
+
+#     return new_note
+
 @app.post('/note', status_code=status.HTTP_201_CREATED, tags=['Notes'])
-def create_note(title:str, note:str, file: UploadFile = File(...),db: Session = Depends(get_db), get_current_user: schemas.User = Depends(oauth2.get_current_user)):
+def create_note(request: schemas.Note, db: Session = Depends(get_db), get_current_user: schemas.User = Depends(oauth2.get_current_user)):
     user = db.query(models.User).filter(models.User.email == get_current_user).first()
-    with open("media/"+file.filename, "wb") as image:
-        shutil.copyfileobj(file.file, image)
-
-    note_url = str("media/"+file.filename)
-
-    new_note = models.Note(title=title, note=note, note_file=note_url, user_id=user.id)
+    new_note = models.Note(title=request.title, note=request.note, note_file=request.note_file, user_id=user.id)
     db.add(new_note)
     db.commit()
     db.refresh(new_note)
